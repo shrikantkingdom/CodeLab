@@ -51,10 +51,6 @@ async def upload_and_process(
         None,
         description="AI model override — e.g. gpt-4o-mini, claude-3-5-haiku-20241022, gemini-2.0-flash",
     ),
-    ai_model: Optional[str] = Form(
-        None,
-        description="AI model override — e.g. gpt-4o-mini, claude-3-5-haiku-20241022, gemini-2.0-flash",
-    ),
 ) -> ComparisonResult:
     """Upload a local PDF and process it through the full pipeline.
 

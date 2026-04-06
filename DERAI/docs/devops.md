@@ -72,27 +72,99 @@ SNOWFLAKE_ACCOUNT=
 DB2_HOST=
 ```
 
+## 3 Ways to Run DERAI
+
+### Option 1: Local Build (Default — `docker-compose.yml`)
+
+Build from local source code. Best for development.
+
+```bash
+git clone https://github.com/shrikantkingdom/CodeLab.git
+cd CodeLab/DERAI
+cp .env.example .env   # edit with your API keys
+docker compose up --build -d
+```
+
+Stop / restart:
+```bash
+docker compose down       # stop all
+docker compose up -d      # restart (no rebuild)
+docker compose up --build -d  # rebuild + restart
+```
+
+> **Note:** Containers run independently of VS Code / any IDE. Close your editor, apps keep running.
+
+---
+
+### Option 2: Pull Pre-Built Images from GHCR (`docker-compose.ghcr.yml`)
+
+No build needed — pulls pre-built images from GitHub Container Registry.
+
+**Push images (one-time or after code changes):**
+```bash
+# Login to GHCR
+echo $GITHUB_TOKEN | docker login ghcr.io -u shrikantkingdom --password-stdin
+
+# Build & push all 3 images
+./scripts/push-to-ghcr.sh
+```
+
+**Run from anywhere (no source code needed):**
+```bash
+# Only need: docker-compose.ghcr.yml + .env
+docker compose -f docker-compose.ghcr.yml up -d
+```
+
+**Image names:**
+| Service | GHCR Image |
+|---------|-----------|
+| FastAPI | `ghcr.io/shrikantkingdom/derai-fastapi:latest` |
+| Spring Boot | `ghcr.io/shrikantkingdom/derai-springboot:latest` |
+| React UI | `ghcr.io/shrikantkingdom/derai-react-ui:latest` |
+
+---
+
+### Option 3: GitHub Actions CI/CD (Fully Automated)
+
+Every push to `main` automatically builds and pushes all 3 Docker images to GHCR.
+
+**Workflow:** `.github/workflows/derai-ci.yml`
+
+```
+Push to main → Build FastAPI ─┐
+             → Build Spring Boot ─┤→ Smoke Test (health checks)
+             → Build React UI ─┘
+```
+
+**What it does:**
+1. Builds all 3 Docker images in parallel
+2. Pushes to GHCR with `:latest` and `:sha` tags
+3. Runs smoke test — starts services from GHCR images and checks health endpoints
+4. On PRs — builds but does NOT push (validation only)
+
+**Manual trigger:** Go to GitHub → Actions → "CI/CD — Build & Push to GHCR" → Run workflow
+
+**After CI builds, run anywhere:**
+```bash
+docker compose -f docker-compose.ghcr.yml up -d
+```
+
+---
+
 ## CI/CD — GitHub Actions
 
-Three separate workflows for independent deployment:
+### Workflow: `.github/workflows/derai-ci.yml`
 
-### 1. FastAPI CI (`.github/workflows/fastapi-ci.yml`)
-```yaml
-Triggers: Push to main (FastAPI services/**), PRs
-Steps: Checkout → Python 3.11 → Install deps → Lint (ruff) → Test (pytest)
-```
+| Job | Runs On | Triggers | Push Images? |
+|-----|---------|----------|-------------|
+| `build-fastapi` | ubuntu-latest | Push to main, manual | Yes (`:latest` + `:sha`) |
+| `build-springboot` | ubuntu-latest | Push to main, manual | Yes |
+| `build-react-ui` | ubuntu-latest | Push to main, manual | Yes |
+| `smoke-test` | ubuntu-latest | After all builds | N/A — validates health |
 
-### 2. Spring Boot CI (`.github/workflows/springboot-ci.yml`)
-```yaml
-Triggers: Push to main (Springboot services/**), PRs
-Steps: Checkout → Java 17 → Maven test → Build JAR
-```
+**Path filters:** Only triggers when files under `DERAI/FastAPI services/`, `DERAI/Springboot services/`, `DERAI/React UI/`, or `DERAI/docker-compose.yml` change.
 
-### 3. React CI (`.github/workflows/react-ci.yml`)
-```yaml
-Triggers: Push to main (React UI/**), PRs
-Steps: Checkout → Node 20 → npm install → Lint → Build → (optional: deploy)
-```
+**Permissions required:** `contents: read`, `packages: write` (GITHUB_TOKEN auto-granted).
 
 ## Deployment Targets
 

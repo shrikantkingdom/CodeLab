@@ -211,6 +211,18 @@ class Orchestrator:
                 structured_data = classify_result
                 ai_details = {}
 
+            # ── Flatten nested AI output ──
+            # AI may return {'Account Information': {'account_number': ...}, 'Asset Composition': {...}}
+            # Comparison engine and segregation logic expect flat keys: {'account_number': ..., 'cash_value': ...}
+            classified_output_raw = structured_data  # preserve nested form for debug
+            flat_data: dict[str, Any] = {}
+            for key, value in structured_data.items():
+                if isinstance(value, dict):
+                    flat_data.update(value)
+                else:
+                    flat_data[key] = value
+            structured_data = flat_data
+
             classify_ms = (time.time() - t1) * 1000
             step_timings.append(StepTiming(
                 step_name="AI Classification", duration_ms=round(classify_ms, 2), status="completed",
@@ -301,7 +313,7 @@ class Orchestrator:
                 extracted_text=raw_text,
                 ai_model_info=ai_model_info,
                 data_categories=data_categories,
-                classified_output=structured_data,
+                classified_output=classified_output_raw,
                 ai_prompt=ai_details.get("ai_request_prompt", ""),
             )
 

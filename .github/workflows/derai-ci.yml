@@ -1,0 +1,164 @@
+name: CI/CD — Build & Push to GHCR
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'DERAI/FastAPI services/**'
+      - 'DERAI/Springboot services/**'
+      - 'DERAI/React UI/**'
+      - 'DERAI/docker-compose.yml'
+      - '.github/workflows/derai-ci.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'DERAI/**'
+  workflow_dispatch:  # Allow manual trigger
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  # ─── FastAPI Service ─────────────────────────────────────
+  build-fastapi:
+    name: Build FastAPI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push FastAPI image
+        uses: docker/build-push-action@v5
+        with:
+          context: DERAI/FastAPI services
+          file: DERAI/FastAPI services/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/derai-fastapi:latest
+            ${{ env.IMAGE_PREFIX }}/derai-fastapi:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ─── Spring Boot Service ─────────────────────────────────
+  build-springboot:
+    name: Build Spring Boot
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push Spring Boot image
+        uses: docker/build-push-action@v5
+        with:
+          context: DERAI/Springboot services
+          file: DERAI/Springboot services/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/derai-springboot:latest
+            ${{ env.IMAGE_PREFIX }}/derai-springboot:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ─── React UI ────────────────────────────────────────────
+  build-react-ui:
+    name: Build React UI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push React UI image
+        uses: docker/build-push-action@v5
+        with:
+          context: DERAI/React UI
+          file: DERAI/React UI/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/derai-react-ui:latest
+            ${{ env.IMAGE_PREFIX }}/derai-react-ui:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ─── Smoke Test (after all images are pushed) ────────────
+  smoke-test:
+    name: Smoke Test
+    needs: [build-fastapi, build-springboot, build-react-ui]
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Start services from GHCR images
+        working-directory: DERAI
+        run: |
+          docker compose -f docker-compose.ghcr.yml up -d
+          sleep 15
+
+      - name: Health check — FastAPI
+        run: |
+          for i in {1..10}; do
+            if curl -sf http://localhost:8000/health; then echo " ✅ FastAPI healthy"; exit 0; fi
+            sleep 3
+          done
+          echo "❌ FastAPI failed health check"; exit 1
+
+      - name: Health check — Spring Boot
+        run: |
+          for i in {1..10}; do
+            if curl -sf http://localhost:8080/health; then echo " ✅ Spring Boot healthy"; exit 0; fi
+            sleep 3
+          done
+          echo "❌ Spring Boot failed health check"; exit 1
+
+      - name: Health check — React UI
+        run: |
+          HTTP_CODE=$(curl -so /dev/null -w "%{http_code}" http://localhost:3000)
+          if [ "$HTTP_CODE" = "200" ]; then echo "✅ React UI healthy (HTTP $HTTP_CODE)"; else echo "❌ React UI returned HTTP $HTTP_CODE"; exit 1; fi
+
+      - name: Cleanup
+        if: always()
+        working-directory: DERAI
+        run: docker compose -f docker-compose.ghcr.yml down

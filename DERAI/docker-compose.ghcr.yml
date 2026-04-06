@@ -1,0 +1,84 @@
+# Docker Compose file for running from pre-built GHCR images
+# No local build needed — pulls images directly from GitHub Container Registry
+#
+# Usage:
+#   docker compose -f docker-compose.ghcr.yml up -d
+#
+# Prerequisites:
+#   1. Copy .env.example to .env and fill in your API keys
+#   2. Login to GHCR: echo $GITHUB_TOKEN | docker login ghcr.io -u <username> --password-stdin
+
+services:
+  fastapi:
+    image: ghcr.io/shrikantkingdom/derai-fastapi:latest
+    container_name: derai-fastapi
+    ports:
+      - "8000:8000"
+    environment:
+      - API_KEY=${API_KEY:-dev-api-key-change-me}
+      - SPRINGBOOT_URL=http://springboot:8080
+      - AI_PROVIDER=${AI_PROVIDER:-openai}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - GITHUB_MODEL=${GITHUB_MODEL:-gpt-4o}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - ANTHROPIC_MODEL=${ANTHROPIC_MODEL:-claude-sonnet-4-20250514}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - GOOGLE_MODEL=${GOOGLE_MODEL:-gemini-1.5-pro}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      - DEEPSEEK_MODEL=${DEEPSEEK_MODEL:-deepseek-chat}
+      - SNOWFLAKE_ACCOUNT=${SNOWFLAKE_ACCOUNT:-}
+      - SNOWFLAKE_USER=${SNOWFLAKE_USER:-}
+      - SNOWFLAKE_PASSWORD=${SNOWFLAKE_PASSWORD:-}
+      - SNOWFLAKE_DATABASE=${SNOWFLAKE_DATABASE:-}
+      - SNOWFLAKE_SCHEMA=${SNOWFLAKE_SCHEMA:-}
+      - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE:-}
+      - DB2_HOST=${DB2_HOST:-}
+      - DB2_PORT=${DB2_PORT:-50000}
+      - DB2_DATABASE=${DB2_DATABASE:-}
+      - DB2_USER=${DB2_USER:-}
+      - DB2_PASSWORD=${DB2_PASSWORD:-}
+      - AZURE_DOC_ENDPOINT=${AZURE_DOC_ENDPOINT:-}
+      - AZURE_DOC_API_KEY=${AZURE_DOC_API_KEY:-}
+      - AZURE_DOC_MODEL=${AZURE_DOC_MODEL:-prebuilt-read}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    depends_on:
+      - springboot
+    networks:
+      - derai-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  springboot:
+    image: ghcr.io/shrikantkingdom/derai-springboot:latest
+    container_name: derai-springboot
+    ports:
+      - "8080:8080"
+    environment:
+      - API_KEY=${API_KEY:-dev-api-key-change-me}
+    networks:
+      - derai-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  react-ui:
+    image: ghcr.io/shrikantkingdom/derai-react-ui:latest
+    container_name: derai-react-ui
+    ports:
+      - "3000:3000"
+    depends_on:
+      - fastapi
+    networks:
+      - derai-net
+
+networks:
+  derai-net:
+    driver: bridge

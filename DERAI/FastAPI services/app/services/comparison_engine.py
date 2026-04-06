@@ -142,6 +142,22 @@ class ComparisonEngine:
                 confidence=1.0,
             )
 
+        # Numeric comparison (handles int vs float, e.g. 2 vs 2.0)
+        try:
+            num_pdf = float(str(pdf_val))
+            num_db = float(str(db_val))
+            if abs(num_pdf - num_db) < 1e-6:
+                return FieldComparison(
+                    field_name=field_name,
+                    pdf_value=pdf_val,
+                    db_value=db_val,
+                    status=ComparisonStatus.MATCH,
+                    confidence=1.0,
+                    notes="Numeric match",
+                )
+        except (ValueError, TypeError):
+            pass
+
         # Fuzzy match for strings (case-insensitive, whitespace-normalized)
         if isinstance(pdf_val, str) and isinstance(db_val, str):
             confidence = self._string_similarity(norm_pdf, norm_db)
