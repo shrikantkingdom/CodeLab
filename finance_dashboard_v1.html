@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Financial Command Center</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+        body {
+            background: #f0f5fa;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .dashboard {
+            max-width: 1600px;
+            width: 100%;
+        }
+        h1 {
+            font-size: 2rem;
+            color: #0b2b4f;
+            margin: 0 0 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .toolbar {
+            background: white;
+            border-radius: 60px;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .btn {
+            background: #2563eb;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid #2563eb;
+            font-size: 0.9rem;
+        }
+        .btn-outline {
+            background: white;
+            color: #2563eb;
+        }
+        .btn-sm {
+            padding: 4px 12px;
+            font-size: 0.8rem;
+        }
+        .btn-success {
+            background: #10b981;
+            border-color: #059669;
+        }
+        .btn-warning {
+            background: #f59e0b;
+            border-color: #d97706;
+        }
+        .phase-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.02);
+            border: 1px solid #e2e8f0;
+        }
+        .card h2 {
+            font-size: 1.2rem;
+            margin: 0 0 15px 0;
+            color: #1e293b;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .master-item {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        .master-item input, .master-item select {
+            padding: 6px 10px;
+            border-radius: 40px;
+            border: 1px solid #cbd5e1;
+            background: white;
+        }
+        .master-item .label { flex: 2; min-width: 120px; }
+        .master-item .amount { width: 100px; }
+        .master-item .month { width: 130px; }
+        .remove-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 26px;
+            height: 26px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .total-line {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 2px solid #cbd5e1;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+        }
+        .blocked-settings {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .blocked-settings label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .year-selector, .month-summary-selector {
+            margin-bottom: 20px;
+        }
+        .year-selector select, .month-summary-selector select {
+            padding: 6px 12px;
+            border-radius: 40px;
+            border: 1px solid #cbd5e1;
+        }
+        .month-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .month-summary-item {
+            flex: 1;
+            min-width: 120px;
+        }
+        .month-summary-item .label {
+            font-size: 0.8rem;
+            color: #475569;
+        }
+        .month-summary-item .value {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        .chart-container {
+            max-width: 400px;
+            margin: 20px auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        }
+        th {
+            background: #f8fafc;
+            padding: 12px 8px;
+            font-weight: 600;
+            color: #334155;
+            border-bottom: 2px solid #cbd5e1;
+            font-size: 0.9rem;
+        }
+        td {
+            padding: 8px 4px;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: center;
+        }
+        td:first-child {
+            text-align: left;
+            font-weight: 500;
+            padding-left: 12px;
+        }
+        .readonly {
+            background: #f1f5f9;
+            color: #334155;
+            padding: 6px 8px;
+            border-radius: 40px;
+            text-align: right;
+        }
+        .total-row {
+            background: #f1f5f9;
+            font-weight: 600;
+        }
+        .amount-positive { color: #059669; font-weight: 600; }
+        .amount-negative { color: #b91c1c; font-weight: 600; }
+        .footer {
+            color: #64748b;
+            text-align: right;
+            font-size: 0.85rem;
+            margin-top: 30px;
+        }
+        .save-bar {
+            position: sticky;
+            bottom: 20px;
+            background: white;
+            border-radius: 60px;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+            border: 1px solid #cbd5e1;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <h1>📊 Financial Command Center
+            <span style="font-size:0.9rem; background:#e2e8f0; padding:5px 12px; border-radius:40px;">v2.0 – full tracking</span>
+        </h1>
+
+        <div class="toolbar">
+            <button class="btn btn-outline btn-sm" id="undoBtn">↩️ Undo</button>
+            <button class="btn btn-outline btn-sm" id="redoBtn">↪️ Redo</button>
+            <button class="btn btn-sm" id="saveSnapshotBtn">💾 Save snapshot</button>
+            <select id="snapshotList" style="padding:4px 8px; border-radius:40px;"></select>
+            <button class="btn btn-outline btn-sm" id="loadSnapshotBtn">Load</button>
+            <button class="btn-outline btn-sm" id="deleteSnapshotBtn">🗑️</button>
+        </div>
+
+        <!-- Overall Summary Cards -->
+        <div class="phase-grid" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="card">
+                <h3>💰 Total Income</h3>
+                <div class="value" id="totalIncomeAll" style="font-size:2rem;">0</div>
+            </div>
+            <div class="card">
+                <h3>💸 Total Expenses</h3>
+                <div class="value" id="totalExpensesAll" style="font-size:2rem;">0</div>
+            </div>
+            <div class="card">
+                <h3>📉 Net</h3>
+                <div class="value" id="netAll" style="font-size:2rem;">0</div>
+            </div>
+        </div>
+
+        <!-- Blocked Account Settings -->
+        <div class="card">
+            <h2>🇩🇪 Blocked Account</h2>
+            <div class="blocked-settings">
+                <label>Deposit amount: <input type="number" id="blockedAmount" value="720000" step="1000"></label>
+                <label>Deposit month: <select id="blockedMonthSelect"></select></label>
+                <label>Withdrawal start: <select id="withdrawalStartMonth"></select></label>
+                <label>Monthly withdrawal: <input type="number" id="monthlyWithdrawal" step="1000" readonly style="background:#f1f5f9;"></label>
+            </div>
+        </div>
+
+        <!-- Recurring Income Master -->
+        <div class="card">
+            <h2>💰 Recurring Income <button class="btn btn-sm" id="addIncomeBtn">+ Add</button></h2>
+            <div id="incomeMasterList"></div>
+            <div class="total-line" id="incomeTotal">Total: ₹0</div>
+        </div>
+
+        <!-- One‑time Debts Master -->
+        <div class="card">
+            <h2>💳 One‑time Debts <button class="btn btn-sm" id="addOneTimeBtn">+ Add</button></h2>
+            <div id="oneTimeMasterList"></div>
+            <div class="total-line" id="oneTimeTotal">Total: ₹0</div>
+        </div>
+
+        <!-- Recurring EMIs Master -->
+        <div class="card">
+            <h2>📆 Recurring EMIs <button class="btn btn-sm" id="addEmiBtn">+ Add</button></h2>
+            <div id="emiMasterList"></div>
+            <div class="total-line" id="emiTotal">Total: ₹0</div>
+        </div>
+
+        <!-- Current Month Summary with Chart -->
+        <div class="card">
+            <h2>📅 Current Month Summary</h2>
+            <div class="month-summary-selector">
+                <label for="summaryMonthSelect">Select month: </label>
+                <select id="summaryMonthSelect"></select>
+            </div>
+            <div class="month-summary" id="monthSummary">
+                <div class="month-summary-item">
+                    <div class="label">Income</div>
+                    <div class="value" id="summaryIncome">0</div>
+                </div>
+                <div class="month-summary-item">
+                    <div class="label">One‑time</div>
+                    <div class="value" id="summaryOnetime">0</div>
+                </div>
+                <div class="month-summary-item">
+                    <div class="label">EMI</div>
+                    <div class="value" id="summaryEmi">0</div>
+                </div>
+                <div class="month-summary-item">
+                    <div class="label">Blocked deposit</div>
+                    <div class="value" id="summaryBlockedDep">0</div>
+                </div>
+                <div class="month-summary-item">
+                    <div class="label">Blocked withdrawal</div>
+                    <div class="value" id="summaryBlockedWith">0</div>
+                </div>
+                <div class="month-summary-item">
+                    <div class="label">Total Expenses</div>
+                    <div class="value" id="summaryExpenses">0</div>
+                </div>
+                <div class="month-summary-item">
+                    <div class="label">Net</div>
+                    <div class="value" id="summaryNet">0</div>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="expenseChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Year selector and monthly table -->
+        <div class="card">
+            <h2>📆 Monthly Breakdown</h2>
+            <div class="year-selector">
+                <label for="yearSelect">Show year: </label>
+                <select id="yearSelect">
+                    <option value="2026">2026</option>
+                    <option value="2027">2027</option>
+                </select>
+            </div>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Income</th>
+                            <th>One‑time</th>
+                            <th>EMI</th>
+                            <th>Blocked deposit</th>
+                            <th>Blocked withdrawal (ref)</th>
+                            <th>Total Expenses</th>
+                            <th>Net</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Save/Discard Bar -->
+        <div class="save-bar">
+            <button class="btn btn-warning" id="discardBtn">Discard changes</button>
+            <button class="btn btn-success" id="saveBtn">Save changes</button>
+        </div>
+        <div class="footer">💾 Changes staged until Save – Undo/Redo – Data persists</div>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- Months from March 2026 to December 2027 ----------
+            function getMonthYear(date) {
+                return date.toLocaleString('default', { month: 'long', year: 'numeric' });
+            }
+            const months = [];
+            const start = new Date(2026, 2, 1); // March 2026
+            const end = new Date(2027, 11, 1);  // December 2027
+            let current = new Date(start);
+            while (current <= end) {
+                months.push(getMonthYear(current));
+                current.setMonth(current.getMonth() + 1);
+            }
+
+            // ---------- Initial data ----------
+            let incomeMaster = [
+                { label: 'Salary', amount: 200000, start: 'March 2026', end: 'December 2027' }
+            ];
+
+            let oneTimeMaster = [
+                { label: 'Bajaj principal', amount: 836000, month: 'March 2026' },
+                { label: 'Axis CC', amount: 45560, month: 'April 2026' },
+                { label: 'ICICI CC', amount: 44523, month: 'April 2026' },
+                { label: 'OPP Card visa', amount: 29000, month: 'April 2026' }
+            ];
+
+            let emiMaster = [
+                { label: 'Macbook', amount: 17000, start: 'March 2026', end: 'February 2027' },
+                { label: 'Goibibo', amount: 7884, start: 'April 2026', end: 'June 2026' },
+                { label: 'Eureka Forbes', amount: 10349, start: 'April 2026', end: 'June 2026' },
+                { label: 'Deshvidesh', amount: 5864, start: 'April 2026', end: 'December 2026' },
+                { label: 'Opp card German', amount: 29000, start: 'April 2026', end: 'June 2026' },
+                { label: 'PP loan', amount: 25000, start: 'March 2026', end: 'December 2026' },
+                { label: 'JP loan', amount: 47000, start: 'March 2026', end: 'December 2026' },
+                { label: 'Brezza', amount: 30000, start: 'March 2026', end: 'December 2026' },
+                { label: 'ICICI PL EMI', amount: 21000, start: 'March 2026', end: 'December 2026' },
+                { label: 'Bajaj interest', amount: 10000, start: 'March 2026', end: 'December 2026' },
+                { label: 'Rental income', amount: -21000, start: 'March 2026', end: 'December 2026' }
+            ];
+
+            let blockedSettings = {
+                depositAmount: 720000,
+                depositMonth: 'March 2026',
+                withdrawalStart: 'May 2026'
+            };
+
+            // ---------- State (no actions in financial) ----------
+            // We'll still use the same pattern, but without actions.
+
+            // Load saved state
+            try {
+                const saved = localStorage.getItem('financialData');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (parsed.incomeMaster) incomeMaster = parsed.incomeMaster;
+                    if (parsed.oneTimeMaster) oneTimeMaster = parsed.oneTimeMaster;
+                    if (parsed.emiMaster) emiMaster = parsed.emiMaster;
+                    if (parsed.blockedSettings) blockedSettings = parsed.blockedSettings;
+                }
+            } catch (e) {}
+
+            // Last saved for discard
+            let lastSaved = {
+                incomeMaster: JSON.parse(JSON.stringify(incomeMaster)),
+                oneTimeMaster: JSON.parse(JSON.stringify(oneTimeMaster)),
+                emiMaster: JSON.parse(JSON.stringify(emiMaster)),
+                blockedSettings: JSON.parse(JSON.stringify(blockedSettings))
+            };
+
+            // ---------- History ----------
+            let historyStack = [];
+            let currentHistoryIndex = -1;
+
+            function pushState() {
+                if (currentHistoryIndex < historyStack.length - 1) {
+                    historyStack = historyStack.slice(0, currentHistoryIndex + 1);
+                }
+                const state = {
+                    incomeMaster: JSON.parse(JSON.stringify(incomeMaster)),
+                    oneTimeMaster: JSON.parse(JSON.stringify(oneTimeMaster)),
+                    emiMaster: JSON.parse(JSON.stringify(emiMaster)),
+                    blockedSettings: JSON.parse(JSON.stringify(blockedSettings))
+                };
+                historyStack.push(state);
+                if (historyStack.length > 30) historyStack.shift();
+                currentHistoryIndex = historyStack.length - 1;
+                updateUndoRedo();
+            }
+
+            function restoreState(state) {
+                incomeMaster = JSON.parse(JSON.stringify(state.incomeMaster));
+                oneTimeMaster = JSON.parse(JSON.stringify(state.oneTimeMaster));
+                emiMaster = JSON.parse(JSON.stringify(state.emiMaster));
+                blockedSettings = JSON.parse(JSON.stringify(state.blockedSettings));
+                fullRender();
+            }
+
+            function undo() { if (currentHistoryIndex > 0) { currentHistoryIndex--; restoreState(historyStack[currentHistoryIndex]); } }
+            function redo() { if (currentHistoryIndex < historyStack.length - 1) { currentHistoryIndex++; restoreState(historyStack[currentHistoryIndex]); } }
+            function updateUndoRedo() {
+                document.getElementById('undoBtn').disabled = currentHistoryIndex <= 0;
+                document.getElementById('redoBtn').disabled = currentHistoryIndex >= historyStack.length - 1;
+            }
+
+            // Persist to localStorage on save
+            function persist() {
+                localStorage.setItem('financialData', JSON.stringify({
+                    incomeMaster, oneTimeMaster, emiMaster, blockedSettings
+                }));
+            }
+
+            function saveChanges() {
+                if (confirm('Save all changes?')) {
+                    lastSaved = {
+                        incomeMaster: JSON.parse(JSON.stringify(incomeMaster)),
+                        oneTimeMaster: JSON.parse(JSON.stringify(oneTimeMaster)),
+                        emiMaster: JSON.parse(JSON.stringify(emiMaster)),
+                        blockedSettings: JSON.parse(JSON.stringify(blockedSettings))
+                    };
+                    persist();
+                    pushState();
+                    alert('Saved.');
+                }
+            }
+
+            function discardChanges() {
+                if (confirm('Discard unsaved changes?')) {
+                    incomeMaster = JSON.parse(JSON.stringify(lastSaved.incomeMaster));
+                    oneTimeMaster = JSON.parse(JSON.stringify(lastSaved.oneTimeMaster));
+                    emiMaster = JSON.parse(JSON.stringify(lastSaved.emiMaster));
+                    blockedSettings = JSON.parse(JSON.stringify(lastSaved.blockedSettings));
+                    fullRender();
+                    pushState();
+                }
+            }
+
+            // ---------- Helpers ----------
+            function monthIndex(monthStr) {
+                return months.indexOf(monthStr);
+            }
+
+            function computeTotals() {
+                let totalIncomeAll = 0, totalOnetimeAll = 0, totalEmiAll = 0, totalBlockedDepAll = 0;
+                const monthlyTotals = months.map((month, idx) => {
+                    const incomeSum = incomeMaster
+                        .filter(d => {
+                            const startIdx = monthIndex(d.start);
+                            const endIdx = monthIndex(d.end);
+                            return startIdx !== -1 && endIdx !== -1 && idx >= startIdx && idx <= endIdx;
+                        })
+                        .reduce((sum, d) => sum + (d.amount || 0), 0);
+
+                    const oneTimeSum = oneTimeMaster
+                        .filter(d => d.month === month)
+                        .reduce((sum, d) => sum + (d.amount || 0), 0);
+
+                    const emiSum = emiMaster
+                        .filter(d => {
+                            const startIdx = monthIndex(d.start);
+                            const endIdx = monthIndex(d.end);
+                            return startIdx !== -1 && endIdx !== -1 && idx >= startIdx && idx <= endIdx;
+                        })
+                        .reduce((sum, d) => sum + (d.amount || 0), 0);
+
+                    const blockedDep = (month === blockedSettings.depositMonth) ? blockedSettings.depositAmount : 0;
+                    const startIdx = monthIndex(blockedSettings.withdrawalStart);
+                    const blockedWith = (startIdx !== -1 && idx >= startIdx && idx < startIdx + 6) ? (blockedSettings.depositAmount / 6) : 0;
+                    const expenses = oneTimeSum + emiSum + blockedDep;
+                    const net = incomeSum - expenses;
+
+                    totalIncomeAll += incomeSum;
+                    totalOnetimeAll += oneTimeSum;
+                    totalEmiAll += emiSum;
+                    totalBlockedDepAll += blockedDep;
+
+                    return { income: incomeSum, oneTimeSum, emiSum, blockedDep, blockedWith, expenses, net };
+                });
+                return { monthlyTotals, totalIncomeAll, totalOnetimeAll, totalEmiAll, totalBlockedDepAll };
+            }
+
+            // ---------- Populate dropdowns ----------
+            function populateMonthDropdowns() {
+                const blockSel = document.getElementById('blockedMonthSelect');
+                const withSel = document.getElementById('withdrawalStartMonth');
+                const summarySel = document.getElementById('summaryMonthSelect');
+                blockSel.innerHTML = '';
+                withSel.innerHTML = '';
+                summarySel.innerHTML = '';
+                months.forEach(m => {
+                    const opt1 = document.createElement('option');
+                    opt1.value = m;
+                    opt1.textContent = m;
+                    if (m === blockedSettings.depositMonth) opt1.selected = true;
+                    blockSel.appendChild(opt1);
+
+                    const opt2 = document.createElement('option');
+                    opt2.value = m;
+                    opt2.textContent = m;
+                    if (m === blockedSettings.withdrawalStart) opt2.selected = true;
+                    withSel.appendChild(opt2);
+
+                    const opt3 = document.createElement('option');
+                    opt3.value = m;
+                    opt3.textContent = m;
+                    if (m === months[0]) opt3.selected = true;
+                    summarySel.appendChild(opt3);
+                });
+            }
+
+            function updateWithdrawalField() {
+                document.getElementById('monthlyWithdrawal').value = Math.round(blockedSettings.depositAmount / 6);
+            }
+
+            // ---------- Render master lists ----------
+            function renderIncomeMaster() {
+                const container = document.getElementById('incomeMasterList');
+                container.innerHTML = '';
+                let total = 0;
+                incomeMaster.forEach((item, idx) => {
+                    total += item.amount || 0;
+                    const div = document.createElement('div');
+                    div.className = 'master-item';
+                    div.innerHTML = `
+                        <input class="label" type="text" value="${item.label}" data-idx="${idx}" data-field="label">
+                        <input class="amount" type="number" value="${item.amount}" step="1000" data-idx="${idx}" data-field="amount">
+                        <select class="month" data-idx="${idx}" data-field="start">
+                            ${months.map(m => `<option value="${m}" ${m===item.start?'selected':''}>${m}</option>`).join('')}
+                        </select>
+                        <span>to</span>
+                        <select class="month" data-idx="${idx}" data-field="end">
+                            ${months.map(m => `<option value="${m}" ${m===item.end?'selected':''}>${m}</option>`).join('')}
+                        </select>
+                        <button class="remove-btn" data-idx="${idx}">✕</button>
+                    `;
+                    container.appendChild(div);
+                });
+                document.getElementById('incomeTotal').innerText = 'Total: ₹' + total.toLocaleString('en-IN');
+
+                container.querySelectorAll('input, select').forEach(el => {
+                    el.addEventListener('change', function(e) {
+                        const idx = this.dataset.idx;
+                        const field = this.dataset.field;
+                        if (field === 'label') incomeMaster[idx].label = this.value;
+                        else if (field === 'amount') incomeMaster[idx].amount = Number(this.value) || 0;
+                        else if (field === 'start') incomeMaster[idx].start = this.value;
+                        else if (field === 'end') incomeMaster[idx].end = this.value;
+                        pushState();
+                        fullRender();
+                    });
+                });
+                container.querySelectorAll('.remove-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        const idx = this.dataset.idx;
+                        incomeMaster.splice(idx, 1);
+                        pushState();
+                        fullRender();
+                    });
+                });
+            }
+
+            function renderOneTimeMaster() {
+                const container = document.getElementById('oneTimeMasterList');
+                container.innerHTML = '';
+                let total = 0;
+                oneTimeMaster.forEach((item, idx) => {
+                    total += item.amount || 0;
+                    const div = document.createElement('div');
+                    div.className = 'master-item';
+                    div.innerHTML = `
+                        <input class="label" type="text" value="${item.label}" data-idx="${idx}" data-field="label">
+                        <input class="amount" type="number" value="${item.amount}" step="1000" data-idx="${idx}" data-field="amount">
+                        <select class="month" data-idx="${idx}" data-field="month">
+                            ${months.map(m => `<option value="${m}" ${m===item.month?'selected':''}>${m}</option>`).join('')}
+                        </select>
+                        <button class="remove-btn" data-idx="${idx}">✕</button>
+                    `;
+                    container.appendChild(div);
+                });
+                document.getElementById('oneTimeTotal').innerText = 'Total: ₹' + total.toLocaleString('en-IN');
+
+                container.querySelectorAll('input, select').forEach(el => {
+                    el.addEventListener('change', function(e) {
+                        const idx = this.dataset.idx;
+                        const field = this.dataset.field;
+                        if (field === 'label') oneTimeMaster[idx].label = this.value;
+                        else if (field === 'amount') oneTimeMaster[idx].amount = Number(this.value) || 0;
+                        else if (field === 'month') oneTimeMaster[idx].month = this.value;
+                        pushState();
+                        fullRender();
+                    });
+                });
+                container.querySelectorAll('.remove-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        const idx = this.dataset.idx;
+                        oneTimeMaster.splice(idx, 1);
+                        pushState();
+                        fullRender();
+                    });
+                });
+            }
+
+            function renderEmiMaster() {
+                const container = document.getElementById('emiMasterList');
+                container.innerHTML = '';
+                let total = 0;
+                emiMaster.forEach((item, idx) => {
+                    total += item.amount || 0;
+                    const div = document.createElement('div');
+                    div.className = 'master-item';
+                    div.innerHTML = `
+                        <input class="label" type="text" value="${item.label}" data-idx="${idx}" data-field="label">
+                        <input class="amount" type="number" value="${item.amount}" step="1000" data-idx="${idx}" data-field="amount">
+                        <select class="month" data-idx="${idx}" data-field="start">
+                            ${months.map(m => `<option value="${m}" ${m===item.start?'selected':''}>${m}</option>`).join('')}
+                        </select>
+                        <span>to</span>
+                        <select class="month" data-idx="${idx}" data-field="end">
+                            ${months.map(m => `<option value="${m}" ${m===item.end?'selected':''}>${m}</option>`).join('')}
+                        </select>
+                        <button class="remove-btn" data-idx="${idx}">✕</button>
+                    `;
+                    container.appendChild(div);
+                });
+                document.getElementById('emiTotal').innerText = 'Total: ₹' + total.toLocaleString('en-IN');
+
+                container.querySelectorAll('input, select').forEach(el => {
+                    el.addEventListener('change', function(e) {
+                        const idx = this.dataset.idx;
+                        const field = this.dataset.field;
+                        if (field === 'label') emiMaster[idx].label = this.value;
+                        else if (field === 'amount') emiMaster[idx].amount = Number(this.value) || 0;
+                        else if (field === 'start') emiMaster[idx].start = this.value;
+                        else if (field === 'end') emiMaster[idx].end = this.value;
+                        pushState();
+                        fullRender();
+                    });
+                });
+                container.querySelectorAll('.remove-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        const idx = this.dataset.idx;
+                        emiMaster.splice(idx, 1);
+                        pushState();
+                        fullRender();
+                    });
+                });
+            }
+
+            function renderMasterLists() {
+                renderIncomeMaster();
+                renderOneTimeMaster();
+                renderEmiMaster();
+            }
+
+            // ---------- Chart ----------
+            let expenseChart = null;
+            function updateChart(month) {
+                const idx = monthIndex(month);
+                if (idx === -1) return;
+                const { monthlyTotals } = computeTotals();
+                const t = monthlyTotals[idx];
+                const ctx = document.getElementById('expenseChart').getContext('2d');
+                if (expenseChart) expenseChart.destroy();
+                expenseChart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['One‑time', 'EMI', 'Blocked Deposit'],
+                        datasets: [{
+                            data: [t.oneTimeSum, t.emiSum, t.blockedDep],
+                            backgroundColor: ['#ef4444', '#3b82f6', '#f59e0b'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { position: 'bottom' }, title: { display: true, text: 'Expense Breakdown' } }
+                    }
+                });
+            }
+
+            // ---------- Render table and summary ----------
+            function renderTableAndSummary() {
+                const year = document.getElementById('yearSelect').value;
+                const filteredMonths = months.filter(m => m.includes(year));
+                const { monthlyTotals, totalIncomeAll, totalOnetimeAll, totalEmiAll, totalBlockedDepAll } = computeTotals();
+                const tbody = document.getElementById('tableBody');
+                tbody.innerHTML = '';
+
+                const totalExpensesAll = totalOnetimeAll + totalEmiAll + totalBlockedDepAll;
+                const totalNetAll = totalIncomeAll - totalExpensesAll;
+                document.getElementById('totalIncomeAll').innerText = totalIncomeAll.toLocaleString('en-IN');
+                document.getElementById('totalExpensesAll').innerText = totalExpensesAll.toLocaleString('en-IN');
+                document.getElementById('netAll').innerText = totalNetAll.toLocaleString('en-IN');
+                document.getElementById('netAll').className = totalNetAll >= 0 ? 'amount-positive' : 'amount-negative';
+
+                let yearIncome = 0, yearExpenses = 0, yearNet = 0;
+
+                filteredMonths.forEach(month => {
+                    const idx = monthIndex(month);
+                    const t = monthlyTotals[idx];
+                    yearIncome += t.income;
+                    yearExpenses += t.expenses;
+                    yearNet += t.net;
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${month}</td>
+                        <td><span class="readonly">${t.income.toLocaleString('en-IN')}</span></td>
+                        <td><span class="readonly">${t.oneTimeSum.toLocaleString('en-IN')}</span></td>
+                        <td><span class="readonly">${t.emiSum.toLocaleString('en-IN')}</span></td>
+                        <td><span class="readonly">${t.blockedDep.toLocaleString('en-IN')}</span></td>
+                        <td><span class="readonly">${t.blockedWith.toLocaleString('en-IN')}</span></td>
+                        <td><span class="readonly">${t.expenses.toLocaleString('en-IN')}</span></td>
+                        <td class="${t.net >= 0 ? 'amount-positive' : 'amount-negative'}">${t.net.toLocaleString('en-IN')}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+                const totalRow = document.createElement('tr');
+                totalRow.className = 'total-row';
+                totalRow.innerHTML = `
+                    <td><strong>Total (${year})</strong></td>
+                    <td><strong>${yearIncome.toLocaleString('en-IN')}</strong></td>
+                    <td><strong>${yearExpenses.toLocaleString('en-IN')}</strong></td>
+                    <td><strong>${yearExpenses.toLocaleString('en-IN')}</strong></td>
+                    <td><strong>${yearExpenses.toLocaleString('en-IN')}</strong></td>
+                    <td><strong>${yearExpenses.toLocaleString('en-IN')}</strong></td>
+                    <td><strong>${yearExpenses.toLocaleString('en-IN')}</strong></td>
+                    <td><strong class="${yearNet >= 0 ? 'amount-positive' : 'amount-negative'}">${yearNet.toLocaleString('en-IN')}</strong></td>
+                `;
+                tbody.appendChild(totalRow);
+            }
+
+            function renderMonthSummary() {
+                const month = document.getElementById('summaryMonthSelect').value;
+                const idx = monthIndex(month);
+                if (idx === -1) return;
+                const { monthlyTotals } = computeTotals();
+                const t = monthlyTotals[idx];
+                document.getElementById('summaryIncome').innerText = t.income.toLocaleString('en-IN');
+                document.getElementById('summaryOnetime').innerText = t.oneTimeSum.toLocaleString('en-IN');
+                document.getElementById('summaryEmi').innerText = t.emiSum.toLocaleString('en-IN');
+                document.getElementById('summaryBlockedDep').innerText = t.blockedDep.toLocaleString('en-IN');
+                document.getElementById('summaryBlockedWith').innerText = t.blockedWith.toLocaleString('en-IN');
+                document.getElementById('summaryExpenses').innerText = t.expenses.toLocaleString('en-IN');
+                document.getElementById('summaryNet').innerText = t.net.toLocaleString('en-IN');
+                document.getElementById('summaryNet').className = t.net >= 0 ? 'amount-positive' : 'amount-negative';
+                updateChart(month);
+            }
+
+            function fullRender() {
+                renderMasterLists();
+                renderTableAndSummary();
+                renderMonthSummary();
+                updateWithdrawalField();
+            }
+
+            // ---------- Event listeners ----------
+            document.getElementById('saveBtn').addEventListener('click', saveChanges);
+            document.getElementById('discardBtn').addEventListener('click', discardChanges);
+            document.getElementById('undoBtn').addEventListener('click', undo);
+            document.getElementById('redoBtn').addEventListener('click', redo);
+
+            document.getElementById('yearSelect').addEventListener('change', renderTableAndSummary);
+            document.getElementById('summaryMonthSelect').addEventListener('change', renderMonthSummary);
+
+            document.getElementById('addIncomeBtn').addEventListener('click', () => {
+                incomeMaster.push({ label: 'New income', amount: 0, start: months[0], end: months[months.length-1] });
+                pushState(); fullRender();
+            });
+            document.getElementById('addOneTimeBtn').addEventListener('click', () => {
+                oneTimeMaster.push({ label: 'New debt', amount: 0, month: months[0] });
+                pushState(); fullRender();
+            });
+            document.getElementById('addEmiBtn').addEventListener('click', () => {
+                emiMaster.push({ label: 'New EMI', amount: 0, start: months[0], end: months[Math.min(5, months.length-1)] });
+                pushState(); fullRender();
+            });
+
+            document.getElementById('blockedAmount').addEventListener('change', function() {
+                blockedSettings.depositAmount = Number(this.value) || 0;
+                updateWithdrawalField();
+                pushState(); fullRender();
+            });
+            document.getElementById('blockedMonthSelect').addEventListener('change', function() {
+                blockedSettings.depositMonth = this.value;
+                pushState(); fullRender();
+            });
+            document.getElementById('withdrawalStartMonth').addEventListener('change', function() {
+                blockedSettings.withdrawalStart = this.value;
+                pushState(); fullRender();
+            });
+
+            // ---------- Snapshots ----------
+            function updateSnapshotDropdown() {
+                const snaps = JSON.parse(localStorage.getItem('financialSnapshots') || '[]');
+                const sel = document.getElementById('snapshotList');
+                sel.innerHTML = '<option value="">— Snapshots —</option>';
+                snaps.forEach((s,i) => {
+                    const opt = document.createElement('option');
+                    opt.value = i;
+                    opt.textContent = s.name || `Snapshot ${i+1}`;
+                    sel.appendChild(opt);
+                });
+            }
+            document.getElementById('saveSnapshotBtn').addEventListener('click', function() {
+                let name = prompt('Snapshot name:', 'Snapshot '+new Date().toLocaleString());
+                if (!name) return;
+                let snaps = JSON.parse(localStorage.getItem('financialSnapshots') || '[]');
+                snaps.push({
+                    name,
+                    incomeMaster: JSON.parse(JSON.stringify(incomeMaster)),
+                    oneTimeMaster: JSON.parse(JSON.stringify(oneTimeMaster)),
+                    emiMaster: JSON.parse(JSON.stringify(emiMaster)),
+                    blockedSettings: JSON.parse(JSON.stringify(blockedSettings))
+                });
+                localStorage.setItem('financialSnapshots', JSON.stringify(snaps));
+                updateSnapshotDropdown();
+            });
+            document.getElementById('loadSnapshotBtn').addEventListener('click', function() {
+                let sel = document.getElementById('snapshotList');
+                if (!sel.value) return;
+                let snaps = JSON.parse(localStorage.getItem('financialSnapshots') || '[]');
+                let snap = snaps[sel.value];
+                if (snap) {
+                    incomeMaster = snap.incomeMaster;
+                    oneTimeMaster = snap.oneTimeMaster;
+                    emiMaster = snap.emiMaster;
+                    blockedSettings = snap.blockedSettings;
+                    fullRender();
+                    pushState();
+                }
+            });
+            document.getElementById('deleteSnapshotBtn').addEventListener('click', function() {
+                let sel = document.getElementById('snapshotList');
+                if (!sel.value) return;
+                let snaps = JSON.parse(localStorage.getItem('financialSnapshots') || '[]');
+                snaps.splice(sel.value, 1);
+                localStorage.setItem('financialSnapshots', JSON.stringify(snaps));
+                updateSnapshotDropdown();
+            });
+
+            // ---------- Initialise ----------
+            populateMonthDropdowns();
+            updateWithdrawalField();
+            fullRender();
+            pushState();
+            updateSnapshotDropdown();
+        })();
+    </script>
+</body>
+</html>

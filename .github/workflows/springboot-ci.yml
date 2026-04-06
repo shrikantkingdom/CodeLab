@@ -1,0 +1,41 @@
+name: Spring Boot CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'DERAI/Springboot services/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'DERAI/Springboot services/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: DERAI/Springboot services
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build and test
+        run: ./mvnw verify -B
+
+  docker:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t derai-springboot:latest "DERAI/Springboot services"

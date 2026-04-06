@@ -1,0 +1,51 @@
+# ── Environment / Secrets ──
+.env
+.env.local
+.env.*.local
+
+# ── Python ──
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+.venv/
+venv/
+
+# ── Node / React ──
+node_modules/
+.next/
+build/
+dist/
+
+# ── Java / Spring Boot ──
+target/
+*.class
+*.jar
+*.war
+*.ear
+.gradle/
+
+# ── IDE ──
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*~
+
+# ── OS ──
+.DS_Store
+Thumbs.db
+
+# ── Docker ──
+*.log
+
+# ── Test artifacts ──
+htmlcov/
+.coverage
+.pytest_cache/
+.mypy_cache/

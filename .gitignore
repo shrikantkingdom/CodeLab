@@ -19,3 +19,47 @@ gradle-app.setting
 .project
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
+
+# ── Environment / Secrets ──
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# ── OS ──
+.DS_Store
+Thumbs.db
+
+# ── IDE ──
+.idea/
+.vscode/
+*.iml
+*.swp
+
+# ── Python ──
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+htmlcov/
+.coverage
+
+# ── Node ──
+node_modules/
+dist/
+
+# ── Java ──
+target/
+*.class
+*.jar
+!gradle-wrapper.jar
+
+# ── Playwright ──
+.playwright-mcp/
+
+# ── Misc ──
+*.log

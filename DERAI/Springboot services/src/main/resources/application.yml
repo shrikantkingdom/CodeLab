@@ -1,0 +1,41 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: derai-extraction-service
+
+# API Security
+app:
+  api-key: ${API_KEY:dev-api-key-change-me}
+
+# Extraction config
+extraction:
+  # Primary engine: pegbox or pdfbox
+  default-engine: pdfbox
+  # Max file size in bytes (50MB)
+  max-file-size: 52428800
+
+# Actuator health endpoint
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+# Logging
+logging:
+  level:
+    com.derai: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# SpringDoc / Swagger
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html

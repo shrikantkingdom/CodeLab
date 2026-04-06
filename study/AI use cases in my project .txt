@@ -1,0 +1,460 @@
+Here’s a detailed information document on how AI tools (especially GitHub Copilot) are integrated into daily engineering work. It covers multiple scenarios and includes Q&A to address typical follow‑up questions.
+
+---
+
+## AI‑Assisted Daily Engineering Workflows
+
+### Introduction
+Beyond the big AI initiatives we’ve built, we also leverage AI tools like **GitHub Copilot**, **Cursor**, and occasionally **ChatGPT/Claude** to accelerate everyday engineering tasks. These tools act as a force multiplier—they don’t replace engineers but help us focus on higher‑value problems by handling repetitive or time‑consuming aspects of coding, debugging, and review.
+
+---
+
+## 1. Query Optimization & Database Tasks
+
+### Scenario
+Writing efficient SQL queries for data validation or reporting can be time‑consuming, especially when dealing with complex joins or large tables.
+
+### How We Use AI
+- **Copilot suggestions** – When I start typing a query, Copilot suggests completions for `SELECT`, `JOIN`, `WHERE`, and even complex aggregations based on the context.
+- **Explain/refactor** – For an existing query, I prompt Copilot (or Cursor) to “suggest an optimized version” or “add comments explaining this query.” It often spots redundant joins or suggests using window functions.
+- **Generating test data** – I can ask the AI to generate a realistic dataset for a new table structure, which I then use in unit tests or local dev.
+
+### Q&A
+**Q: Do you trust the AI’s query suggestions without review?**  
+A: No – I always review and test the generated queries. The AI is a starting point; I validate execution plans and ensure performance meets our SLAs.
+
+**Q: Have you encountered incorrect joins or logical errors?**  
+A: Occasionally. That’s why human review is essential. I treat AI as a pair‑programmer, not a substitute.
+
+---
+
+## 2. Debugging & Troubleshooting Errors
+
+### Scenario
+We often face cryptic error messages or stack traces in our logs, whether from a microservice, a pipeline, or a test failure.
+
+### How We Use AI
+- **Error interpretation** – I copy the error message (and relevant code context) into Cursor or ChatGPT and ask “What could cause this?” or “How to fix this?”. The AI often suggests likely root causes or steps to reproduce.
+- **Log analysis** – For large log files, I ask the AI to summarize patterns or group similar exceptions. This helps triage faster.
+- **Environment setup** – When I encounter configuration issues (e.g., Docker not starting, dependency conflicts), I paste the error output and get step‑by‑step debugging suggestions.
+
+### Q&A
+**Q: Does the AI ever give wrong advice?**  
+A: Yes, sometimes. I treat it as a brainstorming tool. I’ll try the suggested steps, but if they don’t work, I fall back to traditional debugging (logs, breakpoints).
+
+**Q: How do you ensure sensitive logs aren’t exposed?**  
+A: I never paste logs containing customer data or secrets. I sanitize the input or use internal AI tools that run locally.
+
+---
+
+## 3. Building UI & API Layers
+
+### Scenario
+Creating new REST endpoints or frontend components involves boilerplate code that can be repetitive.
+
+### How We Use AI
+- **Generating API endpoints** – I write a comment like “create a Spring Boot controller with endpoints for user management” and Copilot generates the initial skeleton. I then customize.
+- **React components** – For a new UI component, I start with a description (“a table with sortable columns and search”), and Copilot generates JSX, state hooks, and basic styling.
+- **Boilerplate tests** – After writing the implementation, I ask Copilot to generate test cases for the happy path and edge cases.
+
+### Q&A
+**Q: Does this lead to inconsistent code style?**  
+A: Not if we have a style guide and use linters. Copilot adapts to the existing codebase patterns, and we enforce formatting with Prettier/ESLint.
+
+**Q: Do you let AI generate entire features unsupervised?**  
+A: No. I use it to produce a first draft, then refactor to fit our architecture and quality standards.
+
+---
+
+## 4. Pull Request Reviews & Code Quality
+
+### Scenario
+Reviewing pull requests from junior team members (or even peers) can be time‑consuming, especially for catching minor issues or suggesting improvements.
+
+### How We Use AI
+- **GitHub Copilot PR summaries** – Copilot can generate a summary of changes, which helps me quickly understand the scope.
+- **Suggestions in review** – When I spot a code smell, I sometimes ask Copilot to suggest an improvement. It often provides a refactored snippet that I can then propose to the author.
+- **Automated review assistant** – We’re experimenting with a script that runs Copilot over PR diffs and adds comments for potential improvements. The author can then review those suggestions before merging.
+
+### Q&A
+**Q: Do you rely on AI for final approval?**  
+A: No. AI suggestions are always reviewed by a human. The final decision on merge rests with the reviewer.
+
+**Q: What about security or logic flaws?**  
+A: AI may catch some, but we don’t rely on it. Security reviews are still manual or done with dedicated tools (SonarQube, etc.). AI assists but does not replace expertise.
+
+---
+
+## 5. Documentation & Knowledge Sharing
+
+### Scenario
+Writing documentation (READMEs, architecture diagrams, runbooks) is often postponed. AI helps make it easier.
+
+### How We Use AI
+- **Generating markdown from code** – I ask Copilot to generate a README based on a folder structure and key files. I then edit it to add context.
+- **Explaining complex logic** – When I need to document a tricky piece of code, I ask the AI to explain it in simple terms, then adapt that into a comment or wiki.
+- **Creating runbooks** – After a production incident, I use AI to draft a post‑mortem template with timeline and action items, which we fill in together.
+
+### Q&A
+**Q: Does the AI produce accurate explanations?**  
+A: Often yes, but I always verify. The AI might miss domain‑specific nuances, so I add those manually.
+
+---
+
+## 6. Copilot for CI/CD & Infrastructure as Code
+
+### Scenario
+Writing or maintaining YAML pipelines, Dockerfiles, Terraform configurations can be error‑prone.
+
+### How We Use AI
+- **Pipeline snippets** – I start with a comment like “GitHub Actions pipeline to build and test a Node.js app with Playwright”, and Copilot suggests a working YAML structure.
+- **Dockerfile optimization** – I ask Copilot to suggest multi‑stage builds or best practices for caching layers.
+- **Terraform resources** – For new AWS resources, I get a draft of the Terraform block, then adjust to match our naming conventions and security policies.
+
+### Q&A
+**Q: Have you seen AI misconfigure infrastructure?**  
+A: Yes, occasionally it suggests outdated or insecure configurations. We always review and test changes in a sandbox environment first.
+
+---
+
+## Summary of Daily AI Usage
+
+| Task | AI Tool | How It Helps |
+|------|--------|--------------|
+| SQL queries | Copilot | Auto‑completes joins, aggregations; suggests optimizations |
+| Debugging | Cursor, ChatGPT | Interprets error messages, suggests fixes, explains stack traces |
+| Building UI/API | Copilot | Generates boilerplate code, component skeletons, test stubs |
+| PR reviews | Copilot | Summarizes changes, suggests refactoring, adds inline comments |
+| Documentation | Copilot, Cursor | Drafts READMEs, explains code, creates runbooks |
+| CI/CD / IaC | Copilot | Generates pipeline YAML, Dockerfiles, Terraform blocks |
+
+---
+
+### Q&A (General)
+
+**Q: Do you use AI for code generation on sensitive financial systems?**  
+A: We only use AI for non‑critical code or with human oversight. We never paste proprietary code into external models. For internal models, we restrict access to authorized users.
+
+**Q: What’s your biggest concern with AI tools?**  
+A: Over‑reliance. We encourage engineers to understand what they are committing, not just accept AI suggestions blindly. We also maintain a culture of review and pairing.
+
+**Q: How do you measure the impact of AI on productivity?**  
+A: We track metrics like time spent on repetitive tasks (e.g., writing boilerplate) and developer satisfaction. We’ve seen a noticeable reduction in time to implement simple features and a lower defect rate for routine changes.
+
+**Q: Do you have any guidelines for using AI at work?**  
+A: Yes. We have a simple set of rules:
+- Never paste sensitive data (PII, secrets) into public AI tools.
+- Always review and test generated code.
+- Use AI as a tool, not a replacement for reasoning.
+
+---
+
+This document should help you confidently discuss how AI is embedded in your daily engineering practices, beyond the big project initiatives. Let me know if you’d like to expand any section.
+
+Here’s a detailed, simplified document based on your three AI use cases. I’ve structured it so you can easily reference or present it. Each section explains the scenario, the AI solution, how it works, and then a Q&A to anticipate common questions.
+
+---
+
+## AI Usage in Our Quality Engineering Journey
+
+### Overview
+Over the past few years, we’ve integrated AI into three key areas of our quality engineering practice:
+
+1. **AI-assisted Disclosure Validation** – An early POC that helped our operations team prioritize document reviews by scoring the relevance of disclosures.
+2. **GenAI‑powered Document Validation Platform** – A scalable system that verifies thousands of financial documents (statements, confirms, letters) against database sources and previous versions.
+3. **Agentic AI Workflow for SDLC Automation** – An end‑to‑end workflow that uses AI to validate Jira tickets, check code alignment, generate test cases (including BDD Gherkin), and produce release‑quality reports.
+
+---
+
+## 1. AI‑assisted Disclosure Validation (Hackathon POC & Patent)
+
+### The Problem
+In Wealth Management, different account types (mutual funds, ETFs, retirement accounts) require different disclosures on client documents. Operations teams manually add disclosures and rely on technical teams to verify correctness. The process was time‑consuming and prone to oversight.
+
+### The AI Solution
+We built a POC during an AI hackathon that uses a Large Language Model (LLaMA) to calculate a **relevancy score** for each disclosure added to a document. The score is based on three parameters:
+
+- **Historical data** – The model learns from a large dataset of existing account‑disclosure relationships.
+- **Pseudo‑code rules** – Business rules that define which disclosure types belong to which account categories.
+- **Model’s own knowledge** – The LLM’s general understanding of financial products and disclosures.
+
+### How It Worked
+- We built a simple UI (Python) that accepts a confirm document and a disclosure.
+- The backend calls the LLaMA model with the document type, account type, and disclosure text.
+- The model returns a relevancy score (e.g., 0–100%).
+- A threshold (say 75%) was set. Scores below that were flagged red, requiring manual review; scores above were green (lower priority).
+
+### Outcomes
+- The POC was successful and we filed a U.S. patent for the system.
+- It allowed operations to focus their review on high‑risk (red) items first.
+- Later, the tech team built a full application around this concept.
+
+### Q&A
+
+**Q: Why LLaMA instead of GPT?**  
+A: We used LLaMA because it was open‑source and allowed us to run it locally, which helped with data privacy for financial documents.
+
+**Q: How did you handle the historical data?**  
+A: We fed the model a large corpus of past document‑disclosure pairs, so it could learn patterns. Over time, we also added feedback loops to improve accuracy.
+
+**Q: Was this fully automated?**  
+A: No, it was a decision‑support tool. Operations still reviewed everything initially, but as trust built, they prioritized the red items. The goal was to reduce manual effort, not eliminate human oversight.
+
+**Q: What was the biggest challenge?**  
+A: Ensuring the model’s scores were consistent. We iterated on prompts and rules, and we added a “relevancy factor” that combined the three inputs with weights.
+
+---
+
+## 2. GenAI‑powered Document Validation Platform
+
+### The Problem
+Our Wealth Management Client Reporting unit processes thousands of documents (statements, confirms, letters) each release. Manual verification against databases and across document versions was slow, error‑prone, and couldn’t scale. Different teams had separate utilities, leading to duplication.
+
+### The AI Solution
+We built a unified platform that uses **Python (FastAPI) for backend services**, **React for UI**, and **LLMs (LLaMA, later GPT variants) for content extraction and classification**. The platform does two types of validation:
+
+- **PDF‑to‑PDF comparison** – Compare a post‑release document with a pre‑release version to catch unexpected differences.
+- **PDF‑to‑database comparison** – Extract data from the PDF and compare it with database records (Teradata for statements, DB2 for confirms/letters).
+
+### How It Works
+1. **PDF Extraction** – Use Python libraries (pdfminer, pypdf, pdfbox) to extract text from PDFs.
+2. **AI Classification** – Send the extracted text to an LLM with tailored prompts. For statements, we have over 200 prompts covering sections and fields. The model classifies the data into a structured format.
+3. **Comparison** – The platform offers two workflows:
+   - **PDF‑to‑PDF**: Downloads two versions of the same document and highlights differences.
+   - **PDF‑to‑DB**: Maps extracted fields to database columns and calculates a match score for each field, then an overall average score.
+4. **UI Display** – Users upload an Excel file with account numbers; the system fetches documents, runs the validations, and presents results in a dashboard.
+
+### Outcomes
+- Reduced false positives by 80% and processing time by ~40%.
+- Scaled from 8,000 to 16,000 documents per monthly release (now handling 20,000+ documents monthly across all teams).
+- Replaced multiple fragmented tools with a single, reusable platform.
+
+### Q&A
+
+**Q: How do you handle different document formats (PDF, images, etc.)?**  
+A: We started with PDF because it’s the most common. For scanned images, we added OCR via Tesseract. The AI model then works on the extracted text.
+
+**Q: How many prompts did you have to create?**  
+A: For statements alone, we have around 200 high‑level section prompts and hundreds of field‑level prompts. We developed them iteratively, testing on a variety of documents to ensure coverage.
+
+**Q: What if the LLM misclassifies a field?**  
+A: We have a feedback mechanism. When users find a mismatch, they can correct it, and we log that to retrain or adjust prompts. Over time, accuracy improves.
+
+**Q: How do you ensure data security with cloud models?**  
+A: We initially used on‑prem LLaMA to avoid sending sensitive data. Later, we moved to a private cloud instance of GPT‑4 with strict data isolation and encryption.
+
+**Q: How do you measure success?**  
+A: We track false positive rate (down 80%), number of documents processed per release (up 2.5x), and time saved for operations teams. We also measure the coverage of our automated comparisons versus manual checks.
+
+---
+
+## 3. Agentic AI Workflow for SDLC Automation
+
+### The Problem
+Our bi‑weekly (or weekly) releases generate many Jira tickets. Manual checks on ticket quality, code alignment, and test creation were inconsistent and consumed significant time.
+
+### The AI Solution
+We built an **agentic AI workflow** using **MCP servers** to orchestrate tasks across Jira, GitHub, and our automation repository. A Markdown file defines the release details, application context, and technical dependencies. For each team (Statements, Confirms, Letters), a separate file contains specific technical info.
+
+### How It Works
+The AI agent (using GPT‑4 or Claude) is instructed via a **meta‑prompt** that tells it to:
+1. Pull all Jira tickets for a given release.
+2. Verify mandatory fields are complete. If not, the agent sends a notification to the ticket owner.
+3. Analyze each ticket’s description and acceptance criteria against the application architecture (provided in the Markdown file). It flags gaps or ambiguities.
+4. Check the code pushed to GitHub for each ticket, comparing it with the description. It validates that the code implements what was specified.
+5. Generate test cases in two formats:
+   - A structured table that can be uploaded back to Jira.
+   - BDD Gherkin scenarios for our existing Playwright‑Cucumber framework.
+6. Produce a release‑quality report (HTML) with an overall score for each ticket and an aggregate summary.
+
+The process runs automatically on a schedule (or triggered by a webhook) and takes about 2–3 minutes per ticket.
+
+### Outcomes
+- Reduced manual effort in ticket review, test design, and alignment checks by ~30%.
+- Accelerated test case creation and improved coverage (including edge cases).
+- Provided a consistent quality baseline for every release.
+
+### Q&A
+
+**Q: How do you ensure the AI doesn’t make mistakes in code alignment?**  
+A: The AI doesn’t change code; it only analyzes. It looks for discrepancies between the ticket description and the code changes (e.g., missing functionality). The report is used by developers and QA as a starting point for review.
+
+**Q: What if the AI generates test cases that are irrelevant?**  
+A: We always review the generated test cases. The process is a **human‑in‑the‑loop** – AI assists, but humans make final decisions. Over time, the prompts and context files are refined to improve relevance.
+
+**Q: How do you handle different languages/frameworks across teams?**  
+A: Each team’s Markdown file includes the technology stack (Spring Boot, React, etc.) and code structure. The AI uses that context to generate relevant tests.
+
+**Q: Can this work for any Jira project?**  
+A: Yes, with proper configuration. We customized it for our three teams, but the pattern can be adapted to any project by updating the Markdown file and the meta‑prompt.
+
+**Q: How do you maintain security?**  
+A: The agent runs within our private environment; it uses MCP servers to communicate with Jira and GitHub APIs securely. No data is sent to external models without our control.
+
+---
+
+## Summary of AI Benefits
+
+| Use Case | Key Benefit | Scale |
+|----------|-------------|-------|
+| Disclosure Validation | Prioritized high‑risk reviews, reduced manual verification | 80% false positive reduction |
+| Document Validation Platform | Unified verification, scaled to 20k+ docs/month | 2.5x more docs processed per release |
+| Agentic SDLC Workflow | Automated ticket analysis, test generation, and reporting | 30% manual effort reduction, faster release readiness |
+
+---
+
+This document should help you answer any questions about how AI is used in your project. It’s structured to be easy to follow, and the Q&A covers the most likely follow‑up points. Let me know if you want to add more details or adjust any section.
+
+Here’s a detailed, simplified document based on your three AI use cases. I’ve structured it so you can easily reference or present it. Each section explains the scenario, the AI solution, how it works, and then a Q&A to anticipate common questions.
+
+---
+
+## AI Usage in Our Quality Engineering Journey
+
+### Overview
+Over the past few years, we’ve integrated AI into three key areas of our quality engineering practice:
+
+1. **AI-assisted Disclosure Validation** – An early POC that helped our operations team prioritize document reviews by scoring the relevance of disclosures.
+2. **GenAI‑powered Document Validation Platform** – A scalable system that verifies thousands of financial documents (statements, confirms, letters) against database sources and previous versions.
+3. **Agentic AI Workflow for SDLC Automation** – An end‑to‑end workflow that uses AI to validate Jira tickets, check code alignment, generate test cases (including BDD Gherkin), and produce release‑quality reports.
+
+---
+
+## 1. AI‑assisted Disclosure Validation (Hackathon POC & Patent)
+
+### The Problem
+In Wealth Management, different account types (mutual funds, ETFs, retirement accounts) require different disclosures on client documents. Operations teams manually add disclosures and rely on technical teams to verify correctness. The process was time‑consuming and prone to oversight.
+
+### The AI Solution
+We built a POC during an AI hackathon that uses a Large Language Model (LLaMA) to calculate a **relevancy score** for each disclosure added to a document. The score is based on three parameters:
+
+- **Historical data** – The model learns from a large dataset of existing account‑disclosure relationships.
+- **Pseudo‑code rules** – Business rules that define which disclosure types belong to which account categories.
+- **Model’s own knowledge** – The LLM’s general understanding of financial products and disclosures.
+
+### How It Worked
+- We built a simple UI (Python) that accepts a confirm document and a disclosure.
+- The backend calls the LLaMA model with the document type, account type, and disclosure text.
+- The model returns a relevancy score (e.g., 0–100%).
+- A threshold (say 75%) was set. Scores below that were flagged red, requiring manual review; scores above were green (lower priority).
+
+### Outcomes
+- The POC was successful and we filed a U.S. patent for the system.
+- It allowed operations to focus their review on high‑risk (red) items first.
+- Later, the tech team built a full application around this concept.
+
+### Q&A
+
+**Q: Why LLaMA instead of GPT?**  
+A: We used LLaMA because it was open‑source and allowed us to run it locally, which helped with data privacy for financial documents.
+
+**Q: How did you handle the historical data?**  
+A: We fed the model a large corpus of past document‑disclosure pairs, so it could learn patterns. Over time, we also added feedback loops to improve accuracy.
+
+**Q: Was this fully automated?**  
+A: No, it was a decision‑support tool. Operations still reviewed everything initially, but as trust built, they prioritized the red items. The goal was to reduce manual effort, not eliminate human oversight.
+
+**Q: What was the biggest challenge?**  
+A: Ensuring the model’s scores were consistent. We iterated on prompts and rules, and we added a “relevancy factor” that combined the three inputs with weights.
+
+---
+
+## 2. GenAI‑powered Document Validation Platform
+
+### The Problem
+Our Wealth Management Client Reporting unit processes thousands of documents (statements, confirms, letters) each release. Manual verification against databases and across document versions was slow, error‑prone, and couldn’t scale. Different teams had separate utilities, leading to duplication.
+
+### The AI Solution
+We built a unified platform that uses **Python (FastAPI) for backend services**, **React for UI**, and **LLMs (LLaMA, later GPT variants) for content extraction and classification**. The platform does two types of validation:
+
+- **PDF‑to‑PDF comparison** – Compare a post‑release document with a pre‑release version to catch unexpected differences.
+- **PDF‑to‑database comparison** – Extract data from the PDF and compare it with database records (Teradata for statements, DB2 for confirms/letters).
+
+### How It Works
+1. **PDF Extraction** – Use Python libraries (pdfminer, pypdf, pdfbox) to extract text from PDFs.
+2. **AI Classification** – Send the extracted text to an LLM with tailored prompts. For statements, we have over 200 prompts covering sections and fields. The model classifies the data into a structured format.
+3. **Comparison** – The platform offers two workflows:
+   - **PDF‑to‑PDF**: Downloads two versions of the same document and highlights differences.
+   - **PDF‑to‑DB**: Maps extracted fields to database columns and calculates a match score for each field, then an overall average score.
+4. **UI Display** – Users upload an Excel file with account numbers; the system fetches documents, runs the validations, and presents results in a dashboard.
+
+### Outcomes
+- Reduced false positives by 80% and processing time by ~40%.
+- Scaled from 8,000 to 16,000 documents per monthly release (now handling 20,000+ documents monthly across all teams).
+- Replaced multiple fragmented tools with a single, reusable platform.
+
+### Q&A
+
+**Q: How do you handle different document formats (PDF, images, etc.)?**  
+A: We started with PDF because it’s the most common. For scanned images, we added OCR via Tesseract. The AI model then works on the extracted text.
+
+**Q: How many prompts did you have to create?**  
+A: For statements alone, we have around 200 high‑level section prompts and hundreds of field‑level prompts. We developed them iteratively, testing on a variety of documents to ensure coverage.
+
+**Q: What if the LLM misclassifies a field?**  
+A: We have a feedback mechanism. When users find a mismatch, they can correct it, and we log that to retrain or adjust prompts. Over time, accuracy improves.
+
+**Q: How do you ensure data security with cloud models?**  
+A: We initially used on‑prem LLaMA to avoid sending sensitive data. Later, we moved to a private cloud instance of GPT‑4 with strict data isolation and encryption.
+
+**Q: How do you measure success?**  
+A: We track false positive rate (down 80%), number of documents processed per release (up 2.5x), and time saved for operations teams. We also measure the coverage of our automated comparisons versus manual checks.
+
+---
+
+## 3. Agentic AI Workflow for SDLC Automation
+
+### The Problem
+Our bi‑weekly (or weekly) releases generate many Jira tickets. Manual checks on ticket quality, code alignment, and test creation were inconsistent and consumed significant time.
+
+### The AI Solution
+We built an **agentic AI workflow** using **MCP servers** to orchestrate tasks across Jira, GitHub, and our automation repository. A Markdown file defines the release details, application context, and technical dependencies. For each team (Statements, Confirms, Letters), a separate file contains specific technical info.
+
+### How It Works
+The AI agent (using GPT‑4 or Claude) is instructed via a **meta‑prompt** that tells it to:
+1. Pull all Jira tickets for a given release.
+2. Verify mandatory fields are complete. If not, the agent sends a notification to the ticket owner.
+3. Analyze each ticket’s description and acceptance criteria against the application architecture (provided in the Markdown file). It flags gaps or ambiguities.
+4. Check the code pushed to GitHub for each ticket, comparing it with the description. It validates that the code implements what was specified.
+5. Generate test cases in two formats:
+   - A structured table that can be uploaded back to Jira.
+   - BDD Gherkin scenarios for our existing Playwright‑Cucumber framework.
+6. Produce a release‑quality report (HTML) with an overall score for each ticket and an aggregate summary.
+
+The process runs automatically on a schedule (or triggered by a webhook) and takes about 2–3 minutes per ticket.
+
+### Outcomes
+- Reduced manual effort in ticket review, test design, and alignment checks by ~30%.
+- Accelerated test case creation and improved coverage (including edge cases).
+- Provided a consistent quality baseline for every release.
+
+### Q&A
+
+**Q: How do you ensure the AI doesn’t make mistakes in code alignment?**  
+A: The AI doesn’t change code; it only analyzes. It looks for discrepancies between the ticket description and the code changes (e.g., missing functionality). The report is used by developers and QA as a starting point for review.
+
+**Q: What if the AI generates test cases that are irrelevant?**  
+A: We always review the generated test cases. The process is a **human‑in‑the‑loop** – AI assists, but humans make final decisions. Over time, the prompts and context files are refined to improve relevance.
+
+**Q: How do you handle different languages/frameworks across teams?**  
+A: Each team’s Markdown file includes the technology stack (Spring Boot, React, etc.) and code structure. The AI uses that context to generate relevant tests.
+
+**Q: Can this work for any Jira project?**  
+A: Yes, with proper configuration. We customized it for our three teams, but the pattern can be adapted to any project by updating the Markdown file and the meta‑prompt.
+
+**Q: How do you maintain security?**  
+A: The agent runs within our private environment; it uses MCP servers to communicate with Jira and GitHub APIs securely. No data is sent to external models without our control.
+
+---
+
+## Summary of AI Benefits
+
+| Use Case | Key Benefit | Scale |
+|----------|-------------|-------|
+| Disclosure Validation | Prioritized high‑risk reviews, reduced manual verification | 80% false positive reduction |
+| Document Validation Platform | Unified verification, scaled to 20k+ docs/month | 2.5x more docs processed per release |
+| Agentic SDLC Workflow | Automated ticket analysis, test generation, and reporting | 30% manual effort reduction, faster release readiness |
+
+---
+
+This document should help you answer any questions about how AI is used in your project. It’s structured to be easy to follow, and the Q&A covers the most likely follow‑up points. Let me know if you want to add more details or adjust any section.

@@ -1,0 +1,46 @@
+name: React UI CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'DERAI/React UI/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'DERAI/React UI/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: DERAI/React UI
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
+
+  docker:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t derai-react-ui:latest "DERAI/React UI"

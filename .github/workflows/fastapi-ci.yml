@@ -1,0 +1,47 @@
+name: FastAPI CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'DERAI/FastAPI services/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'DERAI/FastAPI services/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: DERAI/FastAPI services
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run tests
+        run: pytest tests/ -v --tb=short
+        env:
+          API_KEY: test-api-key
+
+  docker:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t derai-fastapi:latest "DERAI/FastAPI services"

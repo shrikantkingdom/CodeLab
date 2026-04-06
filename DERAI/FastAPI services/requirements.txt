@@ -1,0 +1,36 @@
+# DERAI FastAPI Services — Dependencies
+
+# Core
+fastapi==0.115.0
+uvicorn[standard]==0.30.0
+pydantic==2.9.0
+pydantic-settings==2.5.0
+httpx==0.27.0
+
+# PDF Extraction engines (install as needed)
+PyMuPDF==1.24.0
+pdfplumber==0.11.0
+tika==2.6.0
+
+# AI / LLM
+openai==1.50.0
+
+pdfminer.six==20231228
+
+# OCR engines
+pytesseract==0.3.13
+Pillow==10.4.0
+azure-ai-documentintelligence==1.0.0b3
+
+# Database connectors (install as needed)
+# snowflake-connector-python==3.12.0
+# ibm_db==3.2.0
+
+# Testing
+pytest==8.3.0
+pytest-asyncio==0.24.0
+httpx  # also used for test client
+
+# Logging / Utilities
+python-json-logger==2.0.0
+python-multipart==0.0.9
