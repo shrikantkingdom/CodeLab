@@ -13,15 +13,18 @@ on:
     branches: [main]
     paths:
       - 'DERAI/**'
-  workflow_dispatch:  # Allow manual trigger
+  workflow_dispatch: # Allow manual trigger
 
 env:
   REGISTRY: ghcr.io
   IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 permissions:
   contents: read
   packages: write
+  attestations: write
+  id-token: write
 
 jobs:
   # ─── FastAPI Service ─────────────────────────────────────
@@ -42,15 +45,25 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_PREFIX }}/derai-fastapi
+          tags: |
+            type=raw,value=latest
+            type=sha,format=long
+
       - name: Build & push FastAPI image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: DERAI/FastAPI services
           file: DERAI/FastAPI services/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
-          tags: |
-            ${{ env.IMAGE_PREFIX }}/derai-fastapi:latest
-            ${{ env.IMAGE_PREFIX }}/derai-fastapi:${{ github.sha }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.description=DERAI FastAPI Service
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -72,15 +85,25 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_PREFIX }}/derai-springboot
+          tags: |
+            type=raw,value=latest
+            type=sha,format=long
+
       - name: Build & push Spring Boot image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: DERAI/Springboot services
           file: DERAI/Springboot services/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
-          tags: |
-            ${{ env.IMAGE_PREFIX }}/derai-springboot:latest
-            ${{ env.IMAGE_PREFIX }}/derai-springboot:${{ github.sha }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.description=DERAI Spring Boot Service
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -102,15 +125,25 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_PREFIX }}/derai-react-ui
+          tags: |
+            type=raw,value=latest
+            type=sha,format=long
+
       - name: Build & push React UI image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: DERAI/React UI
           file: DERAI/React UI/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
-          tags: |
-            ${{ env.IMAGE_PREFIX }}/derai-react-ui:latest
-            ${{ env.IMAGE_PREFIX }}/derai-react-ui:${{ github.sha }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.description=DERAI React UI
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
